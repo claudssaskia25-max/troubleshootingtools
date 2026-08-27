@@ -861,21 +861,19 @@
                     <td>${item.sku}</td>
                     <td>
                         <div class="stock-ctrl">
-                            <button class="btn btn-sm btn-secondary" onclick="adjustStock('${item.id}', -1)">-</button>
-                            <span class="badge ${item.stock > 0 ? 'badge-success' : 'badge-danger'}">
-                                ${item.stock}
-                            </span>
-                            <button class="btn btn-sm btn-secondary" onclick="adjustStock('${item.id}', 1)">+</button>
+                            <button class="btn btn-sm btn-secondary" onclick="updateStock('${item.id}', -1)">-</button>
+                            <span style="font-weight:bold; min-width:20px; text-align:center;">${item.stock}</span>
+                            <button class="btn btn-sm btn-secondary" onclick="updateStock('${item.id}', 1)">+</button>
                         </div>
                     </td>
-                    <td>${item.bin}</td>
+                    <td>${item.bin || 'N/A'}</td>
                     <td>
-                        <select class="tag-select tag-${currentTag}" onchange="updateToolTag('${item.id}', this.value)">
+                        <select class="tag-select tag-${currentTag}" onchange="updateTagStatus('${item.id}', this.value)">
                             <option value="none" ${currentTag === 'none' ? 'selected' : ''}>No Tag</option>
-                            <option value="yellow" ${currentTag === 'yellow' ? 'selected' : ''}>🟨 Yellow Tag</option>
-                            <option value="red" ${currentTag === 'red' ? 'selected' : ''}>🟥 Red Tag</option>
-                            <option value="repair" ${currentTag === 'repair' ? 'selected' : ''}>🛠️ Repair Tag</option>
-                            <option value="damage" ${currentTag === 'damage' ? 'selected' : ''}>⚠️ Damage Tag</option>
+                            <option value="yellow" ${currentTag === 'yellow' ? 'selected' : ''}>🟨 Yellow</option>
+                            <option value="red" ${currentTag === 'red' ? 'selected' : ''}>🟥 Red</option>
+                            <option value="repair" ${currentTag === 'repair' ? 'selected' : ''}>🛠️ Repair</option>
+                            <option value="damage" ${currentTag === 'damage' ? 'selected' : ''}>⚠️ Damage</option>
                         </select>
                     </td>
                     <td>
@@ -886,308 +884,22 @@
         }).join('');
     }
 
-    function updateToolTag(id, newTag) {
-        const item = inventory.find(i => i.id === id);
-        if (item) {
-            item.tag = newTag;
-            renderInventory();
-            renderProblems();
-            calculateManifest();
-            if (document.getElementById('problemModal').style.display === 'flex') {
-                renderModalToolTags();
-                renderToolSelectorOptions();
-            }
-        }
-    }
-
-    function adjustStock(id, delta) {
+    function updateStock(id, delta) {
         const item = inventory.find(i => i.id === id);
         if (item) {
             item.stock = Math.max(0, item.stock + delta);
             renderInventory();
             renderProblems();
-            calculateManifest();
-            if (document.getElementById('problemModal').style.display === 'flex') {
-                renderModalToolTags();
-                renderToolSelectorOptions();
-            }
-        }
-    }
-
-    function calculateManifest() {
-        const checkedBoxes = document.querySelectorAll('#problemList input[type="checkbox"]:checked');
-        const manifestList = document.getElementById('manifestList');
-        const statsBox = document.getElementById('statsBox');
-        const statsContent = document.getElementById('statsContent');
-
-        if (checkedBoxes.length === 0) {
-            manifestList.innerHTML = '<li class="empty-state">Select issues and click "Generate Tool Deployment Manifest".</li>';
-            statsBox.style.display = 'none';
-            return;
-        }
-
-        let rawCount = 0;
-        const requiredToolsSet = new Set();
-
-        checkedBoxes.forEach(box => {
-            const problem = problems.find(p => p.id === box.value);
-            if (problem) {
-                problem.tools.forEach(tool => {
-                    rawCount++;
-                    requiredToolsSet.add(tool);
-                });
-            }
-        });
-
-        const uniqueTools = Array.from(requiredToolsSet);
-        const eliminatedRedundancies = rawCount - uniqueTools.length;
-
-        if (uniqueTools.length === 0) {
-            manifestList.innerHTML = '<li class="empty-state">No tools assigned to the selected troubleshooting option(s).</li>';
-            statsBox.style.display = 'none';
-            return;
-        }
-
-        manifestList.innerHTML = uniqueTools.map(toolName => {
-            const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
-            let statusTag = '';
-
-            if (!invItem) {
-                statusTag = `<span class="badge badge-danger">Not in Inventory</span>`;
-            } else if (invItem.stock === 0) {
-                statusTag = `<span class="badge badge-danger">Shortage (0 Stock)</span>`;
-            } else {
-                let tagWarning = '';
-                if (invItem.tag === 'red') {
-                    tagWarning = ` <span class="tag-badge tag-red">🟥 Red Tag</span>`;
-                } else if (invItem.tag === 'yellow') {
-                    tagWarning = ` <span class="tag-badge tag-yellow">🟨 Yellow Tag</span>`;
-                } else if (invItem.tag === 'repair') {
-                    tagWarning = ` <span class="tag-badge tag-repair">🛠️ Repair Tag</span>`;
-                } else if (invItem.tag === 'damage') {
-                    tagWarning = ` <span class="tag-badge tag-damage">⚠️ Damage Tag</span>`;
-                }
-                statusTag = `<span class="badge badge-success">${invItem.stock} ${invItem.sku} in ${invItem.bin}</span>${tagWarning}`;
-            }
-
-            return `
-                <li class="tool-item">
-                    <span><strong>${toolName}</strong></span>
-                    <div>${statusTag}</div>
-                </li>
-            `;
-        }).join('');
-
-        statsContent.innerHTML = `
-            <div>Selected Issues: <strong>${checkedBoxes.length}</strong></div>
-            <div>Unique Tools Required: <strong>${uniqueTools.length}</strong></div>
-            <div>Redundant Deployments Saved: <strong>${eliminatedRedundancies}</strong></div>
-        `;
-        statsBox.style.display = 'block';
-    }
-
-    function openProblemModal(probId = null) {
-        const modal = document.getElementById('problemModal');
-        document.getElementById('editingProblemId').value = probId || '';
-        document.getElementById('modalSearchInput').value = '';
-        
-        if (probId) {
-            const prob = problems.find(p => p.id === probId);
-            document.getElementById('modalProblemTitle').innerText = 'Edit Troubleshooting Option';
-            document.getElementById('probTitle').value = prob.title;
-            document.getElementById('probSeverity').value = prob.severity;
-            currentModalTools = [...prob.tools];
-        } else {
-            document.getElementById('modalProblemTitle').innerText = 'Add Troubleshooting Option';
-            document.getElementById('probTitle').value = '';
-            document.getElementById('probSeverity').value = 'High';
-            currentModalTools = [];
-        }
-
-        renderModalToolTags();
-        renderToolSelectorOptions();
-        modal.style.display = 'flex';
-    }
-
-    function renderModalToolTags() {
-        const container = document.getElementById('selectedToolTags');
-        if (currentModalTools.length === 0) {
-            container.innerHTML = '<span style="font-size:0.75rem; color:var(--text-muted);">No tools assigned yet. Click tools below or create a new tool to add.</span>';
-            return;
-        }
-
-        container.innerHTML = currentModalTools.map(toolName => {
-            const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
-            const isOut = !invItem || invItem.stock === 0;
-            const style = isOut ? 'background:#fee2e2; color:#991b1b;' : 'background:#d1fae5; color:#065f46;';
-            const tagBadge = invItem && invItem.tag !== 'none' ? renderTagBadgeHTML(invItem.tag) : '';
-
-            return `
-                <span class="selected-tag" style="${style}">
-                    ${toolName} ${invItem ? `(${invItem.stock} ${invItem.sku})` : '(0)'} ${tagBadge}
-                    <span class="remove-btn" onclick="removeToolFromModal('${toolName}')">✕</span>
-                </span>
-            `;
-        }).join('');
-    }
-
-    function renderToolSelectorOptions() {
-        const container = document.getElementById('toolSelectorList');
-        const filterInStock = document.getElementById('filterInStockOnly').checked;
-        const searchQuery = document.getElementById('modalSearchInput').value.toLowerCase().trim();
-
-        let availableList = inventory.filter(item => {
-            const tagStr = (item.tag || 'none') + ' tag';
-            const matchesSearch = item.name.toLowerCase().includes(searchQuery) || 
-                                  item.bin.toLowerCase().includes(searchQuery) || 
-                                  item.sku.toLowerCase().includes(searchQuery) ||
-                                  tagStr.toLowerCase().includes(searchQuery);
-            const matchesStock = !filterInStock || item.stock > 0;
-            return matchesSearch && matchesStock;
-        });
-
-        if (availableList.length === 0) {
-            container.innerHTML = `
-                <div style="padding:12px; text-align:center; color:var(--text-muted); font-size:0.8rem;">
-                    No matching tools displayed.
-                    <br><button class="btn btn-sm" style="margin-top:6px;" onclick="openToolModal()">+ Add New Tool to Stock</button>
-                </div>`;
-            return;
-        }
-
-        container.innerHTML = availableList.map(item => {
-            const isAlreadyAdded = currentModalTools.some(t => t.toLowerCase() === item.name.toLowerCase());
-            const tagBadge = renderTagBadgeHTML(item.tag || 'none');
-            return `
-                <div class="tool-option" onclick="addToolToModal('${item.name}')" style="${isAlreadyAdded ? 'opacity:0.5; background:#f9fafb;' : ''}">
-                    <span>${item.name} (${item.sku} - ${item.bin}) ${tagBadge}</span>
-                    <span class="badge ${item.stock > 0 ? 'badge-success' : 'badge-danger'}">
-                        ${item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
-                    </span>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function addToolToModal(toolName) {
-        if (!currentModalTools.some(t => t.toLowerCase() === toolName.toLowerCase())) {
-            currentModalTools.push(toolName);
-            renderModalToolTags();
             renderToolSelectorOptions();
         }
     }
 
-    function removeToolFromModal(toolName) {
-        currentModalTools = currentModalTools.filter(t => t.toLowerCase() !== toolName.toLowerCase());
-        renderModalToolTags();
-        renderToolSelectorOptions();
-    }
-
-    function clearAllAssignedModalTools() {
-        if (currentModalTools.length === 0) return;
-        if (confirm("Clear all assigned tools for this option?")) {
-            currentModalTools = [];
-            renderModalToolTags();
-            renderToolSelectorOptions();
-        }
-    }
-
-    function purgeOutOfStockFromModal() {
-        currentModalTools = currentModalTools.filter(toolName => {
-            const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
-            return invItem && invItem.stock > 0;
-        });
-        renderModalToolTags();
-        renderToolSelectorOptions();
-    }
-
-    function saveProblem() {
-        const title = document.getElementById('probTitle').value.trim();
-        const severity = document.getElementById('probSeverity').value;
-        const editingId = document.getElementById('editingProblemId').value;
-
-        if (!title) {
-            alert('Please enter an issue description.');
-            return;
-        }
-
-        if (editingId) {
-            const prob = problems.find(p => p.id === editingId);
-            if (prob) {
-                prob.title = title;
-                prob.severity = severity;
-                prob.tools = [...currentModalTools];
-            }
-        } else {
-            problems.push({
-                id: 'p_' + Date.now(),
-                title: title,
-                severity: severity,
-                tools: [...currentModalTools]
-            });
-        }
-
-        closeModal('problemModal');
-        renderProblems();
-        calculateManifest();
-    }
-
-    function openToolModal() { document.getElementById('toolModal').style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    function saveTool() {
-        const name = document.getElementById('toolName').value.trim();
-        const sku = document.getElementById('toolSku').value.trim() || 'PC';
-        const stock = parseInt(document.getElementById('toolStock').value, 10);
-        const bin = document.getElementById('toolBin').value.trim() || 'UNASSIGNED';
-        const tag = document.getElementById('toolTag').value || 'none';
-
-        if (!name || isNaN(stock)) {
-            alert('Please enter a valid tool name and stock count.');
-            return;
-        }
-
-        const existingItem = inventory.find(i => i.name.toLowerCase() === name.toLowerCase());
-
-        if (existingItem) {
-            existingItem.stock += stock;
-            existingItem.tag = tag;
-        } else {
-            inventory.push({
-                id: 't_' + Date.now(),
-                name: name,
-                sku: sku,
-                stock: stock,
-                bin: bin,
-                tag: tag
-            });
-        }
-
-        if (document.getElementById('problemModal').style.display === 'flex') {
-            addToolToModal(name);
-        }
-
-        document.getElementById('toolName').value = '';
-        document.getElementById('toolSku').value = 'PC';
-        document.getElementById('toolStock').value = '1';
-        document.getElementById('toolBin').value = '';
-        document.getElementById('toolTag').value = 'none';
-        closeModal('toolModal');
-        renderInventory();
-        renderProblems();
-        calculateManifest();
-        if (document.getElementById('problemModal').style.display === 'flex') {
-            renderModalToolTags();
-            renderToolSelectorOptions();
-        }
-    }
-
-    function deleteAllTools() {
-        if (confirm("Are you sure you want to delete all tools from the inventory?")) {
-            inventory = [];
+    function updateTagStatus(id, newTag) {
+        const item = inventory.find(i => i.id === id);
+        if (item) {
+            item.tag = newTag;
             renderInventory();
             renderProblems();
-            calculateManifest();
         }
     }
 
@@ -1195,15 +907,272 @@
         inventory = inventory.filter(i => i.id !== id);
         renderInventory();
         renderProblems();
-        calculateManifest();
+        renderToolSelectorOptions();
+    }
+
+    function deleteAllTools() {
+        if (confirm("Are you sure you want to delete all inventory items?")) {
+            inventory = [];
+            renderInventory();
+            renderProblems();
+            renderToolSelectorOptions();
+        }
+    }
+
+    function openToolModal() {
+        document.getElementById('toolName').value = '';
+        document.getElementById('toolSku').value = 'PC';
+        document.getElementById('toolStock').value = '1';
+        document.getElementById('toolBin').value = '';
+        document.getElementById('toolTag').value = 'none';
+        document.getElementById('toolModal').style.display = 'flex';
+    }
+
+    function saveTool() {
+        const name = document.getElementById('toolName').value.trim();
+        const sku = document.getElementById('toolSku').value.trim() || 'PC';
+        const stock = parseInt(document.getElementById('toolStock').value, 10) || 0;
+        const bin = document.getElementById('toolBin').value.trim() || 'N/A';
+        const tag = document.getElementById('toolTag').value;
+
+        if (!name) {
+            alert('Please enter a tool name.');
+            return;
+        }
+
+        const newTool = {
+            id: 't' + Date.now(),
+            name,
+            sku,
+            stock,
+            bin,
+            tag
+        };
+
+        inventory.push(newTool);
+        closeModal('toolModal');
+        renderInventory();
+        renderProblems();
+        renderToolSelectorOptions();
+    }
+
+    function openProblemModal(problemId = null) {
+        if (problemId) {
+            const prob = problems.find(p => p.id === problemId);
+            if (prob) {
+                document.getElementById('modalProblemTitle').innerText = 'Edit Troubleshooting Option';
+                document.getElementById('editingProblemId').value = prob.id;
+                document.getElementById('probTitle').value = prob.title;
+                document.getElementById('probSeverity').value = prob.severity;
+                currentModalTools = [...prob.tools];
+            }
+        } else {
+            document.getElementById('modalProblemTitle').innerText = 'Configure Troubleshooting Option';
+            document.getElementById('editingProblemId').value = '';
+            document.getElementById('probTitle').value = '';
+            document.getElementById('probSeverity').value = 'High';
+            currentModalTools = [];
+        }
+
+        renderSelectedModalTags();
+        renderToolSelectorOptions();
+        document.getElementById('problemModal').style.display = 'flex';
+    }
+
+    function saveProblem() {
+        const id = document.getElementById('editingProblemId').value;
+        const title = document.getElementById('probTitle').value.trim();
+        const severity = document.getElementById('probSeverity').value;
+
+        if (!title) {
+            alert('Please enter an issue description.');
+            return;
+        }
+
+        if (id) {
+            const prob = problems.find(p => p.id === id);
+            if (prob) {
+                prob.title = title;
+                prob.severity = severity;
+                prob.tools = [...currentModalTools];
+            }
+        } else {
+            problems.push({
+                id: 'p' + Date.now(),
+                title,
+                severity,
+                tools: [...currentModalTools]
+            });
+        }
+
+        closeModal('problemModal');
+        renderProblems();
     }
 
     function deleteProblem(id) {
         problems = problems.filter(p => p.id !== id);
         renderProblems();
-        calculateManifest();
     }
 
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    function renderSelectedModalTags() {
+        const container = document.getElementById('selectedToolTags');
+        if (currentModalTools.length === 0) {
+            container.innerHTML = '<span style="font-size:0.75rem; color:var(--text-muted);">No tools selected yet.</span>';
+            return;
+        }
+
+        container.innerHTML = currentModalTools.map(toolName => `
+            <span class="selected-tag">
+                ${toolName}
+                <span class="remove-btn" onclick="removeToolFromModal('${toolName.replace(/'/g, "\\'")}')">✕</span>
+            </span>
+        `).join('');
+    }
+
+    function renderToolSelectorOptions() {
+        const query = document.getElementById('modalSearchInput').value.toLowerCase().trim();
+        const showInStockOnly = document.getElementById('filterInStockOnly').checked;
+        const listContainer = document.getElementById('toolSelectorList');
+
+        let filtered = inventory.filter(item => {
+            const matchesQuery = item.name.toLowerCase().includes(query) || item.bin.toLowerCase().includes(query);
+            const matchesStock = !showInStockOnly || item.stock > 0;
+            return matchesQuery && matchesStock;
+        });
+
+        if (filtered.length === 0) {
+            listContainer.innerHTML = '<div style="padding:10px; font-size:0.8rem; color:var(--text-muted); text-align:center;">No tools found.</div>';
+            return;
+        }
+
+        listContainer.innerHTML = filtered.map(item => {
+            const isAssigned = currentModalTools.includes(item.name);
+            return `
+                <div class="tool-option" onclick="addToolToModal('${item.name.replace(/'/g, "\\'")}')">
+                    <span>
+                        <strong>${item.name}</strong> 
+                        <small style="color:var(--text-muted);">(${item.bin})</small>
+                    </span>
+                    <span style="font-size:0.75rem;">
+                        ${isAssigned ? '✅ Added' : `Stock: ${item.stock}`}
+                    </span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function addToolToModal(toolName) {
+        if (!currentModalTools.includes(toolName)) {
+            currentModalTools.push(toolName);
+            renderSelectedModalTags();
+            renderToolSelectorOptions();
+        }
+    }
+
+    function removeToolFromModal(toolName) {
+        currentModalTools = currentModalTools.filter(t => t !== toolName);
+        renderSelectedModalTags();
+        renderToolSelectorOptions();
+    }
+
+    function clearAllAssignedModalTools() {
+        currentModalTools = [];
+        renderSelectedModalTags();
+        renderToolSelectorOptions();
+    }
+
+    function purgeOutOfStockFromModal() {
+        currentModalTools = currentModalTools.filter(toolName => {
+            const item = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
+            return item && item.stock > 0;
+        });
+        renderSelectedModalTags();
+        renderToolSelectorOptions();
+    }
+
+    function calculateManifest() {
+        const checkboxes = document.querySelectorAll('#problemList input[type="checkbox"]:checked');
+        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+        const manifestList = document.getElementById('manifestList');
+        const statsBox = document.getElementById('statsBox');
+        const statsContent = document.getElementById('statsContent');
+
+        if (selectedIds.length === 0) {
+            manifestList.innerHTML = '<li class="empty-state">No troubleshooting scenarios selected. Check at least one scenario above.</li>';
+            statsBox.style.display = 'none';
+            return;
+        }
+
+        const selectedProblems = problems.filter(p => selectedIds.includes(p.id));
+        const toolMap = new Map();
+
+        selectedProblems.forEach(prob => {
+            prob.tools.forEach(toolName => {
+                if (!toolMap.has(toolName)) {
+                    toolMap.set(toolName, []);
+                }
+                toolMap.get(toolName).push(prob.title);
+            });
+        });
+
+        let totalToolsNeeded = toolMap.size;
+        let inStockCount = 0;
+        let outOfStockCount = 0;
+        let taggedCount = 0;
+
+        let manifestItemsHTML = '';
+
+        toolMap.forEach((scenarios, toolName) => {
+            const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
+            const hasStock = invItem && invItem.stock > 0;
+            const stockQty = invItem ? invItem.stock : 0;
+            const binLoc = invItem ? invItem.bin : 'N/A';
+            const tagStatus = invItem ? invItem.tag : 'none';
+
+            if (hasStock) inStockCount++;
+            else outOfStockCount++;
+
+            if (tagStatus !== 'none') taggedCount++;
+
+            manifestItemsHTML += `
+                <li class="tool-item">
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.9rem;">
+                            ${toolName} 
+                            ${renderTagBadgeHTML(tagStatus)}
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                            Required for: ${scenarios.join(', ')} | Bin: <strong>${binLoc}</strong>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="badge ${hasStock ? 'badge-success' : 'badge-danger'}">
+                            ${hasStock ? `In Stock (${stockQty})` : 'Out of Stock'}
+                        </span>
+                    </div>
+                </li>
+            `;
+        });
+
+        statsContent.innerHTML = `
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <span><strong>Selected Scenarios:</strong> ${selectedProblems.length}</span>
+                <span><strong>Total Unique Tools:</strong> ${totalToolsNeeded}</span>
+                <span><strong>Ready (In Stock):</strong> <span style="color:var(--success); font-weight:bold;">${inStockCount}</span></span>
+                <span><strong>Missing/Empty:</strong> <span style="color:var(--danger); font-weight:bold;">${outOfStockCount}</span></span>
+                ${taggedCount > 0 ? `<span><strong>Flagged/Tagged:</strong> <span style="color:var(--warning); font-weight:bold;">${taggedCount}</span></span>` : ''}
+            </div>
+        `;
+
+        statsBox.style.display = 'block';
+        manifestList.innerHTML = manifestItemsHTML;
+    }
+
+    // Initial Render
     renderProblems();
     renderInventory();
 </script>
