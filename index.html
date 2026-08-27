@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Troubleshooting & Tool Deployment Manager</title>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --success: #16a34a;
+            --warning: #d97706;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 12px;
+        }
+
+        @media (min-width: 768px) {
+            body { padding: 20px; }
+        }
+
+        .header {
+            max-width: 1200px;
+            margin: 0 auto 15px auto;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            margin: 5px 0;
+        }
+
+        @media (min-width: 768px) {
+            .header h1 { font-size: 1.8rem; }
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 900px) {
+            .app-container {
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+        }
+
+        .panel {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .panel {
+                padding: 20px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                margin-bottom: 20px;
+            }
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .panel-header div {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        h2 { margin: 0; font-size: 1.1rem; }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            touch-action: manipulation;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+        .btn-secondary { background-color: #4b5563; }
+        .btn-secondary:hover { background-color: #374151; }
+        .btn-sm { padding: 6px 10px; font-size: 0.75rem; min-height: 32px; }
+
+        .search-bar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        @media (min-width: 480px) {
+            .search-bar-container {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+
+        .search-input {
+            width: 100%;
+            flex-grow: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .filter-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            padding: 4px 0;
+        }
+
+        .filter-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .problem-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+
+        .problem-card input[type="checkbox"] {
+            margin-top: 4px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .problem-info { flex-grow: 1; width: 100%; }
+
+        .problem-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        @media (min-width: 480px) {
+            .problem-title {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .problem-title-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .problem-tools {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .tool-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            border: 1px solid #d1d5db;
+            background: #fff;
+        }
+
+        .tool-chip.instock { border-color: #a7f3d0; background: #ecfdf5; color: #065f46; }
+        .tool-chip.outstock { border-color: #fca5a5; background: #fef2f2; color: #991b1b; }
+
+        .tool-list { list-style: none; padding: 0; margin: 0; }
+
+        .tool-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            gap: 8px;
+        }
+
+        .tool-item:last-child { border-bottom: none; }
+
+        .stats-box {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .badge-success { background-color: #d1fae5; color: #065f46; }
+        .badge-warning { background-color: #fef3c7; color: #92400e; }
+        .badge-danger { background-color: #fee2e2; color: #991b1b; }
+
+        .table-wrapper { 
+            max-height: 380px; 
+            overflow-y: auto; 
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 320px; }
+
+        th, td {
+            text-align: left;
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        @media (min-width: 480px) {
+            th, td { padding: 8px 10px; }
+        }
+
+        th { background-color: #f9fafb; position: sticky; top: 0; z-index: 10; }
+
+        .stock-ctrl {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stock-ctrl .btn {
+            min-width: 28px;
+            height: 28px;
+            padding: 0;
+        }
+
+        .empty-state { color: var(--text-muted); text-align: center; padding: 20px 0; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 10px;
+        }
+
+        .modal {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            max-width: 550px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        @media (min-width: 480px) {
+            .modal { padding: 20px; }
+        }
+
+        .form-group { margin-bottom: 14px; }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .tool-picker-container {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px;
+            background: #fafafa;
+        }
+
+        .picker-header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        @media (min-width: 480px) {
+            .picker-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+            min-height: 36px;
+            padding: 6px;
+            background: #ffffff;
+            border: 1px dashed var(--border-color);
+            border-radius: 4px;
+        }
+
+        .selected-tag {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+        }
+
+        .selected-tag .remove-btn {
+            cursor: pointer;
+            color: #ef4444;
+            font-weight: bold;
+            padding: 2px 4px;
+        }
+
+        .tool-selector-list {
+            max-height: 160px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tool-option {
+            padding: 8px 10px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            gap: 8px;
+        }
+
+        .tool-option:hover { background: #f0f9ff; }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Troubleshooting & Tool Deployment Manager</h1>
+</div>
+
+<div class="app-container">
+    <div>
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Troubleshooting Scenarios</h2>
+                <button class="btn btn-sm" onclick="openProblemModal()">+ Add Option</button>
+            </div>
+            <div id="problemList" class="checkbox-group"></div>
+            <button class="btn" style="width: 100%;" onclick="calculateManifest()">Generate Tool Deployment Manifest</button>
+        </div>
+    </div>
+
+    <div>
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Optimized Tool Kit Manifest</h2>
+            </div>
+            <div id="statsBox" class="stats-box" style="display: none;">
+                <div id="statsContent"></div>
+            </div>
+            <ul id="manifestList" class="tool-list">
+                <li class="empty-state">Select issues and click 'Generate Tool Deployment Manifest'.</li>
+            </ul>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Warehouse Tool Inventory</h2>
+                <div>
+                    <button class="btn btn-sm" onclick="openToolModal()">+ Add Tool</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAllTools()">Delete All</button>
+                </div>
+            </div>
+            
+            <div class="search-bar-container">
+                <input type="text" id="invSearchInput" class="search-input" placeholder="🔍 Search tool or bin..." oninput="renderInventory()">
+                <label class="filter-toggle">
+                    <input type="checkbox" id="invInStockOnly" onchange="renderInventory()"> In-Stock Only
+                </label>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tool Name</th>
+                            <th>SKU</th>
+                            <th>Stock</th>
+                            <th>Bin</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="problemModal" class="modal-overlay">
+    <div class="modal">
+        <h3 id="modalProblemTitle" style="margin-top:0;">Configure Troubleshooting Option</h3>
+        <input type="hidden" id="editingProblemId" value="">
+        
+        <div class="form-group">
+            <label for="probTitle">Issue Description</label>
+            <input type="text" id="probTitle" placeholder="e.g., Solar Array Ground Fault">
+        </div>
+        
+        <div class="form-group">
+            <label for="probSeverity">Severity Level</label>
+            <select id="probSeverity">
+                <option value="Critical">Critical</option>
+                <option value="High" selected>High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Assigned Required Tools</label>
+            <div class="tool-picker-container">
+                <div class="picker-header">
+                    <input type="text" id="modalSearchInput" class="search-input" placeholder="🔍 Quick search tools..." oninput="renderToolSelectorOptions()">
+                    <button type="button" class="btn btn-sm btn-danger" onclick="purgeOutOfStockFromModal()">Purge 0-Stock</button>
+                </div>
+                
+                <div class="picker-header">
+                    <label class="filter-toggle">
+                        <input type="checkbox" id="filterInStockOnly" checked onchange="renderToolSelectorOptions()"> Show In-Stock Only
+                    </label>
+                </div>
+
+                <div class="selected-tags" id="selectedToolTags"></div>
+
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Click tool below to add:</div>
+                <div class="tool-selector-list" id="toolSelectorList"></div>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal('problemModal')">Cancel</button>
+            <button class="btn" onclick="saveProblem()">Save Option</button>
+        </div>
+    </div>
+</div>
+
+<div id="toolModal" class="modal-overlay">
+    <div class="modal">
+        <h3 style="margin-top:0;">Add Warehouse Tool</h3>
+        <div class="form-group">
+            <label for="toolName">Tool Name</label>
+            <input type="text" id="toolName" placeholder="e.g., Multi-Angle Cutter">
+        </div>
+        <div class="form-group">
+            <label for="toolSku">Unit / SKU</label>
+            <input type="text" id="toolSku" placeholder="e.g., PC, SET, ROLLS" value="PC">
+        </div>
+        <div class="form-group">
+            <label for="toolStock">Initial Stock Quantity</label>
+            <input type="number" id="toolStock" value="1" min="0">
+        </div>
+        <div class="form-group">
+            <label for="toolBin">Bin Location</label>
+            <input type="text" id="toolBin" placeholder="e.g., BIN-A1">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-danger" onclick="closeModal('toolModal')">Cancel</button>
+            <button class="btn" onclick="saveTool()">Save Tool</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentModalTools = [];
+
+    let problems = [
+        {
+            id: 'p1',
+            title: 'ATS Tight Terminal Issue',
+            severity: 'High',
+            tools: ['Allen Wrench 6"', 'Torque Wrench', 'Socket Wrench', 'Pliers', 'Level Bar 18inch']
+        },
+        {
+            id: 'p2',
+            title: 'Battery Not Discharging / Charging',
+            severity: 'Critical',
+            tools: ['Hydraulic Crimper', 'Cordless Charger', 'Cordless Battery', 'Wire Cutter', 'Torque Wrench']
+        },
+        {
+            id: 'p3',
+            title: 'No Power Both Utility and Battery',
+            severity: 'Critical',
+            tools: ['SDS Cordless', 'Long Nose Plier', 'Wire Cutter', 'Portable Electric Fan', 'Meter Tape 10m']
+        },
+        {
+            id: 'p4',
+            title: 'Indicator Light Turned Yellow',
+            severity: 'Medium',
+            tools: ['RJ45 Crimper', 'MC4 Crimper', 'Heatgun', 'Fish Wire', 'Squala Small']
+        }
+    ];
+
+    let inventory = [
+        { id: 't1', name: 'Nylon Rope Red', sku: 'ROLLS', stock: 2, bin: 'BIN-S1' },
+        { id: 't2', name: 'Level Bar 18inch', sku: 'PC', stock: 1, bin: 'BIN-M1' },
+        { id: 't3', name: 'Heatgun', sku: 'PC', stock: 1, bin: 'BIN-E3' },
+        { id: 't4', name: 'Torque Wrench', sku: 'PC', stock: 1, bin: 'BIN-T2' },
+        { id: 't5', name: 'Squala Long', sku: 'PC', stock: 1, bin: 'BIN-M3' },
+        { id: 't6', name: 'Sledge Hammer', sku: 'PC', stock: 1, bin: 'BIN-M5' },
+        { id: 't7', name: 'Portable Electric Fan', sku: 'PC', stock: 1, bin: 'BIN-A1' },
+        { id: 't8', name: 'Nail Gun', sku: 'PC', stock: 1, bin: 'BIN-P4' },
+        { id: 't9', name: 'Pliers', sku: 'PC', stock: 1, bin: 'BIN-T4' },
+        { id: 't10', name: 'Socket Wrench', sku: 'PC', stock: 1, bin: 'BIN-T5' },
+        { id: 't11', name: 'Small Hammer', sku: 'PC', stock: 1, bin: 'BIN-M7' },
+        { id: 't12', name: 'Adjustable Wrench', sku: 'PC', stock: 1, bin: 'BIN-T6' },
+        { id: 't13', name: 'Vise Grip', sku: 'PC', stock: 1, bin: 'BIN-T7' },
+        { id: 't14', name: 'Combination Wrench 19"', sku: 'PC', stock: 1, bin: 'BIN-T8' },
+        { id: 't15', name: 'Bolt Cutter Long', sku: 'PC', stock: 1, bin: 'BIN-M9' },
+        { id: 't16', name: 'Wire Stripper', sku: 'PC', stock: 1, bin: 'BIN-E7' },
+        { id: 't17', name: 'Rubber Mallet', sku: 'PC', stock: 1, bin: 'BIN-M10' },
+        { id: 't18', name: 'Long Nose Plier', sku: 'PC', stock: 2, bin: 'BIN-T9' },
+        { id: 't19', name: 'Pipe Wrench 18"', sku: 'PC', stock: 1, bin: 'BIN-M12' },
+        { id: 't20', name: 'Level Bar Small', sku: 'PC', stock: 1, bin: 'BIN-M13' },
+        { id: 't21', name: 'Squala Small', sku: 'PC', stock: 1, bin: 'BIN-M15' },
+        { id: 't22', name: 'Combination Wrench 15"', sku: 'PC', stock: 1, bin: 'BIN-T10' },
+        { id: 't23', name: 'Meter Tape 10m', sku: 'PC', stock: 1, bin: 'BIN-M14' },
+        { id: 't24', name: 'Insulated Flatscrew', sku: 'PC', stock: 1, bin: 'BIN-E8' },
+        { id: 't25', name: 'RJ45 Crimper', sku: 'PC', stock: 1, bin: 'BIN-E4' },
+        { id: 't26', name: 'Hammer', sku: 'PC', stock: 1, bin: 'BIN-M16' },
+        { id: 't27', name: 'MC4 Crimper', sku: 'PC', stock: 1, bin: 'BIN-E1' },
+        { id: 't28', name: 'Allen Wrench 6"', sku: 'PC', stock: 3, bin: 'BIN-T1' },
+        { id: 't29', name: 'Wire Cutter', sku: 'PC', stock: 1, bin: 'BIN-E6' },
+        { id: 't30', name: 'Wire Knife', sku: 'PC', stock: 1, bin: 'BIN-E9' },
+        { id: 't31', name: 'Hydraulic Crimper', sku: 'PC', stock: 1, bin: 'BIN-E2' },
+        { id: 't32', name: 'Sealant Gun', sku: 'PC', stock: 1, bin: 'BIN-M2' },
+        { id: 't33', name: 'Metal Hand Saw', sku: 'PC', stock: 1, bin: 'BIN-M4' },
+        { id: 't34', name: 'Fish Wire', sku: 'PC', stock: 1, bin: 'BIN-E5' },
+        { id: 't35', name: 'Knock Out Puncher', sku: 'SET', stock: 1, bin: 'BIN-M6' },
+        { id: 't36', name: 'Riviter', sku: 'PC', stock: 1, bin: 'BIN-M11' },
+        { id: 't37', name: 'PVC Cutter', sku: 'PC', stock: 1, bin: 'BIN-P11' },
+        { id: 't38', name: 'Regular Hammer', sku: 'PC', stock: 1, bin: 'BIN-M17' },
+        { id: 't39', name: 'Insulated Philip Screw', sku: 'PC', stock: 1, bin: 'BIN-E10' },
+        { id: 't40', name: 'SDS Cordless', sku: 'SET', stock: 1, bin: 'BIN-P7' },
+        { id: 't41', name: 'Cordless Grinder', sku: 'SET', stock: 1, bin: 'BIN-P6' },
+        { id: 't42', name: 'Cordless Charger', sku: 'PC', stock: 1, bin: 'BIN-P9' },
+        { id: 't43', name: 'Cordless Impact Drill', sku: 'SET', stock: 1, bin: 'BIN-P1' },
+        { id: 't44', name: 'Hand Drill', sku: 'PC', stock: 1, bin: 'BIN-P5' },
+        { id: 't45', name: 'Wired Grinder', sku: 'PC', stock: 1, bin: 'BIN-P13' },
+        { id: 't46', name: 'SDS Wired', sku: 'PC', stock: 1, bin: 'BIN-P2' },
+        { id: 't47', name: 'Drill Wired', sku: 'PC', stock: 1, bin: 'BIN-P8' },
+        { id: 't48', name: 'Cordless Battery', sku: 'PC', stock: 2, bin: 'BIN-P10' }
+    ];
+
+    function getSeverityBadge(severity) {
+        const styles = {
+            Critical: 'badge-danger',
+            High: 'badge-warning',
+            Medium: 'badge-warning',
+            Low: 'badge-success'
+        };
+        return `<span class="badge ${styles[severity] || 'badge-success'}">${severity}</span>`;
+    }
+
+    function renderProblems() {
+        const container = document.getElementById('problemList');
+        if (problems.length === 0) {
+            container.innerHTML = '<div class="empty-state">No troubleshooting options available. Click "+ Add Option" above.</div>';
+            return;
+        }
+
+        container.innerHTML = problems.map(prob => {
+            const toolChips = prob.tools.map(toolName => {
+                const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
+                const isAvailable = invItem && invItem.stock > 0;
+                const stockText = invItem ? `(${invItem.stock})` : '(N/A)';
+                return `
+                    <span class="tool-chip ${isAvailable ? 'instock' : 'outstock'}">
+                        ${toolName} ${stockText}
+                    </span>
+                `;
+            }).join('');
+
+            return `
+                <div class="problem-card">
+                    <input type="checkbox" id="${prob.id}" value="${prob.id}">
+                    <div class="problem-info">
+                        <div class="problem-title">
+                            <label for="${prob.id}" style="cursor:pointer">${prob.title}</label>
+                            <div class="problem-title-actions">
+                                ${getSeverityBadge(prob.severity)}
+                                <button class="btn btn-sm btn-secondary" onclick="openProblemModal('${prob.id}')">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteProblem('${prob.id}')">✕</button>
+                            </div>
+                        </div>
+                        <div class="problem-tools">${toolChips}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderInventory() {
+        const table = document.getElementById('inventoryTable');
+        const query = document.getElementById('invSearchInput').value.toLowerCase().trim();
+        const inStockOnly = document.getElementById('invInStockOnly').checked;
+
+        let filtered = inventory.filter(item => {
+            const matchesSearch = item.name.toLowerCase().includes(query) || item.bin.toLowerCase().includes(query) || item.sku.toLowerCase().includes(query);
+            const matchesStock = !inStockOnly || item.stock > 0;
+            return matchesSearch && matchesStock;
+        });
+
+        if (filtered.length === 0) {
+            table.innerHTML = '<tr><td colspan="5" class="empty-state">No matching tools found in inventory.</td></tr>';
+            return;
+        }
+
+        table.innerHTML = filtered.map(item => `
+            <tr>
+                <td><strong>${item.name}</strong></td>
+                <td>${item.sku}</td>
+                <td>
+                    <div class="stock-ctrl">
+                        <button class="btn btn-sm btn-secondary" onclick="adjustStock('${item.id}', -1)">-</button>
+                        <span class="badge ${item.stock > 0 ? 'badge-success' : 'badge-danger'}">
+                            ${item.stock}
+                        </span>
+                        <button class="btn btn-sm btn-secondary" onclick="adjustStock('${item.id}', 1)">+</button>
+                    </div>
+                </td>
+                <td>${item.bin}</td>
+                <td>
+                    <button class="btn btn-sm btn-danger" onclick="deleteTool('${item.id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function adjustStock(id, delta) {
+        const item = inventory.find(i => i.id === id);
+        if (item) {
+            item.stock = Math.max(0, item.stock + delta);
+            renderInventory();
+            renderProblems();
+            calculateManifest();
+            if (document.getElementById('problemModal').style.display === 'flex') {
+                renderModalToolTags();
+                renderToolSelectorOptions();
+            }
+        }
+    }
+
+    function calculateManifest() {
+        const checkedBoxes = document.querySelectorAll('#problemList input[type="checkbox"]:checked');
+        const manifestList = document.getElementById('manifestList');
+        const statsBox = document.getElementById('statsBox');
+        const statsContent = document.getElementById('statsContent');
+
+        if (checkedBoxes.length === 0) {
+            manifestList.innerHTML = '<li class="empty-state">Select issues and click "Generate Tool Deployment Manifest".</li>';
+            statsBox.style.display = 'none';
+            return;
+        }
+
+        let rawCount = 0;
+        const requiredToolsSet = new Set();
+
+        checkedBoxes.forEach(box => {
+            const problem = problems.find(p => p.id === box.value);
+            if (problem) {
+                problem.tools.forEach(tool => {
+                    rawCount++;
+                    requiredToolsSet.add(tool);
+                });
+            }
+        });
+
+        const uniqueTools = Array.from(requiredToolsSet);
+        const eliminatedRedundancies = rawCount - uniqueTools.length;
+
+        manifestList.innerHTML = uniqueTools.map(toolName => {
+            const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
+            let statusTag = '';
+
+            if (!invItem) {
+                statusTag = `<span class="badge badge-danger">Not in Inventory</span>`;
+            } else if (invItem.stock === 0) {
+                statusTag = `<span class="badge badge-danger">Shortage (0 Stock)</span>`;
+            } else {
+                statusTag = `<span class="badge badge-success">${invItem.stock} ${invItem.sku} in ${invItem.bin}</span>`;
+            }
+
+            return `
+                <li class="tool-item">
+                    <span>${toolName}</span>
+                    ${statusTag}
+                </li>
+            `;
+        }).join('');
+
+        statsContent.innerHTML = `
+            <div>Selected Issues: <strong>${checkedBoxes.length}</strong></div>
+            <div>Unique Tools Required: <strong>${uniqueTools.length}</strong></div>
+            <div>Redundant Deployments Saved: <strong>${eliminatedRedundancies}</strong></div>
+        `;
+        statsBox.style.display = 'block';
+    }
+
+    function openProblemModal(probId = null) {
+        const modal = document.getElementById('problemModal');
+        document.getElementById('editingProblemId').value = probId || '';
+        document.getElementById('modalSearchInput').value = '';
+        
+        if (probId) {
+            const prob = problems.find(p => p.id === probId);
+            document.getElementById('modalProblemTitle').innerText = 'Edit Troubleshooting Option';
+            document.getElementById('probTitle').value = prob.title;
+            document.getElementById('probSeverity').value = prob.severity;
+            currentModalTools = [...prob.tools];
+        } else {
+            document.getElementById('modalProblemTitle').innerText = 'Add Troubleshooting Option';
+            document.getElementById('probTitle').value = '';
+            document.getElementById('probSeverity').value = 'High';
+            currentModalTools = [];
+        }
+
+        renderModalToolTags();
+        renderToolSelectorOptions();
+        modal.style.display = 'flex';
+    }
+
+    function renderModalToolTags() {
+        const container = document.getElementById('selectedToolTags');
+        if (currentModalTools.length === 0) {
+            container.innerHTML = '<span style="font-size:0.75rem; color:var(--text-muted);">No tools assigned yet. Search and click tools below to add.</span>';
+            return;
+        }
+
+        container.innerHTML = currentModalTools.map(toolName => {
+            const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
+            const isOut = !invItem || invItem.stock === 0;
+            const style = isOut ? 'background:#fee2e2; color:#991b1b;' : 'background:#d1fae5; color:#065f46;';
+            return `
+                <span class="selected-tag" style="${style}">
+                    ${toolName} ${invItem ? `(${invItem.stock} ${invItem.sku})` : '(0)'}
+                    <span class="remove-btn" onclick="removeToolFromModal('${toolName}')">✕</span>
+                </span>
+            `;
+        }).join('');
+    }
+
+    function renderToolSelectorOptions() {
+        const container = document.getElementById('toolSelectorList');
+        const filterInStock = document.getElementById('filterInStockOnly').checked;
+        const searchQuery = document.getElementById('modalSearchInput').value.toLowerCase().trim();
+
+        let availableList = inventory.filter(item => {
+            const matchesSearch = item.name.toLowerCase().includes(searchQuery) || item.bin.toLowerCase().includes(searchQuery) || item.sku.toLowerCase().includes(searchQuery);
+            const matchesStock = !filterInStock || item.stock > 0;
+            return matchesSearch && matchesStock;
+        });
+
+        if (availableList.length === 0) {
+            container.innerHTML = '<div class="tool-option" style="color:var(--text-muted);">No matching tools found.</div>';
+            return;
+        }
+
+        container.innerHTML = availableList.map(item => {
+            const isAlreadyAdded = currentModalTools.some(t => t.toLowerCase() === item.name.toLowerCase());
+            return `
+                <div class="tool-option" onclick="addToolToModal('${item.name}')" style="${isAlreadyAdded ? 'opacity:0.5; background:#f9fafb;' : ''}">
+                    <span>${item.name} (${item.sku} - ${item.bin})</span>
+                    <span class="badge ${item.stock > 0 ? 'badge-success' : 'badge-danger'}">
+                        ${item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
+                    </span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function addToolToModal(toolName) {
+        if (!currentModalTools.some(t => t.toLowerCase() === toolName.toLowerCase())) {
+            currentModalTools.push(toolName);
+            renderModalToolTags();
+            renderToolSelectorOptions();
+        }
+    }
+
+    function removeToolFromModal(toolName) {
+        currentModalTools = currentModalTools.filter(t => t.toLowerCase() !== toolName.toLowerCase());
+        renderModalToolTags();
+        renderToolSelectorOptions();
+    }
+
+    function purgeOutOfStockFromModal() {
+        currentModalTools = currentModalTools.filter(toolName => {
+            const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
+            return invItem && invItem.stock > 0;
+        });
+        renderModalToolTags();
+        renderToolSelectorOptions();
+    }
+
+    function saveProblem() {
+        const title = document.getElementById('probTitle').value.trim();
+        const severity = document.getElementById('probSeverity').value;
+        const editingId = document.getElementById('editingProblemId').value;
+
+        if (!title) {
+            alert('Please enter an issue description.');
+            return;
+        }
+
+        if (editingId) {
+            const prob = problems.find(p => p.id === editingId);
+            if (prob) {
+                prob.title = title;
+                prob.severity = severity;
+                prob.tools = [...currentModalTools];
+            }
+        } else {
+            problems.push({
+                id: 'p_' + Date.now(),
+                title: title,
+                severity: severity,
+                tools: [...currentModalTools]
+            });
+        }
+
+        closeModal('problemModal');
+        renderProblems();
+        calculateManifest();
+    }
+
+    function openToolModal() { document.getElementById('toolModal').style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function saveTool() {
+        const name = document.getElementById('toolName').value.trim();
+        const sku = document.getElementById('toolSku').value.trim() || 'PC';
+        const stock = parseInt(document.getElementById('toolStock').value, 10);
+        const bin = document.getElementById('toolBin').value.trim() || 'UNASSIGNED';
+
+        if (!name || isNaN(stock)) {
+            alert('Please enter a valid tool name and stock count.');
+            return;
+        }
+
+        inventory.push({
+            id: 't_' + Date.now(),
+            name: name,
+            sku: sku,
+            stock: stock,
+            bin: bin
+        });
+
+        document.getElementById('toolName').value = '';
+        document.getElementById('toolSku').value = 'PC';
+        document.getElementById('toolStock').value = '1';
+        document.getElementById('toolBin').value = '';
+        closeModal('toolModal');
+        renderInventory();
+        renderProblems();
+        calculateManifest();
+    }
+
+    function deleteAllTools() {
+        if (confirm("Are you sure you want to delete all tools from the inventory?")) {
+            inventory = [];
+            renderInventory();
+            renderProblems();
+            calculateManifest();
+        }
+    }
+
+    function deleteTool(id) {
+        inventory = inventory.filter(i => i.id !== id);
+        renderInventory();
+        renderProblems();
+        calculateManifest();
+    }
+
+    function deleteProblem(id) {
+        problems = problems.filter(p => p.id !== id);
+        renderProblems();
+        calculateManifest();
+    }
+
+    renderProblems();
+    renderInventory();
+</script>
+</body>
+</html>
