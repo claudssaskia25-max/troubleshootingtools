@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Troubleshooting & Tool Deployment Manager</title>
     <style>
         :root {
@@ -17,6 +17,9 @@
             --text-main: #1f2937;
             --text-muted: #6b7280;
             --border-color: #e5e7eb;
+            --radius: 8px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         * { 
@@ -30,6 +33,8 @@
             color: var(--text-main);
             margin: 0;
             padding: 12px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            line-height: 1.4;
         }
 
         @media (min-width: 768px) {
@@ -37,49 +42,57 @@
         }
 
         .header {
-            max-width: 1200px;
-            margin: 0 auto 15px auto;
+            max-width: 1400px;
+            margin: 0 auto 16px auto;
             text-align: center;
         }
 
         .header h1 {
-            font-size: 1.4rem;
-            margin: 5px 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 4px 0;
+            color: #111827;
         }
 
         @media (min-width: 768px) {
-            .header h1 { font-size: 1.8rem; }
+            .header h1 { font-size: 1.75rem; }
         }
 
+        /* Responsive Layout Grid */
         .app-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: 1fr;
-            gap: 15px;
+            gap: 16px;
         }
 
-        @media (min-width: 900px) {
+        @media (min-width: 1024px) {
             .app-container {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 420px 1fr;
                 gap: 20px;
+                align-items: start;
             }
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .panel {
             background-color: var(--card-bg);
-            border-radius: 8px;
+            border-radius: var(--radius);
             padding: 14px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--shadow-sm);
             border: 1px solid var(--border-color);
-            margin-bottom: 15px;
         }
 
         @media (min-width: 768px) {
             .panel {
                 padding: 20px;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                margin-bottom: 20px;
+                box-shadow: var(--shadow-md);
             }
         }
 
@@ -88,10 +101,10 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
             border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .panel-header div {
@@ -100,93 +113,123 @@
             flex-wrap: wrap;
         }
 
-        h2 { margin: 0; font-size: 1.1rem; }
+        h2 { 
+            margin: 0; 
+            font-size: 1.05rem; 
+            font-weight: 600;
+        }
 
+        /* Mobile Touch-Optimized Buttons */
         .btn {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 14px;
+            padding: 10px 16px;
+            min-height: 42px; /* Minimum 42px touch target for mobile */
             font-size: 0.875rem;
             font-weight: 600;
             border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.15s ease, transform 0.05s ease;
             touch-action: manipulation;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            text-align: center;
+            user-select: none;
         }
 
+        .btn:active { transform: scale(0.98); }
         .btn:hover { background-color: var(--primary-hover); }
         .btn-danger { background-color: var(--danger); }
         .btn-danger:hover { background-color: var(--danger-hover); }
         .btn-secondary { background-color: #4b5563; }
         .btn-secondary:hover { background-color: #374151; }
-        .btn-sm { padding: 6px 10px; font-size: 0.75rem; min-height: 32px; }
+        .btn-sm { 
+            padding: 6px 12px; 
+            font-size: 0.8rem; 
+            min-height: 36px; 
+        }
+
+        /* Inputs - 16px font-size prevents iOS Safari Auto-Zoom */
+        input[type="text"], 
+        input[type="number"], 
+        select {
+            font-size: 16px !important; 
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            outline: none;
+            background-color: #fff;
+            color: var(--text-main);
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, 
+        input[type="number"]:focus, 
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
 
         .search-bar-container {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 10px;
+            margin-bottom: 14px;
         }
 
-        @media (min-width: 480px) {
+        @media (min-width: 576px) {
             .search-bar-container {
                 flex-direction: row;
                 align-items: center;
             }
         }
 
-        .search-input {
-            width: 100%;
-            flex-grow: 1;
-            padding: 10px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
+        .search-input { width: 100%; flex-grow: 1; }
 
         .filter-toggle {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-size: 0.85rem;
             white-space: nowrap;
             cursor: pointer;
             user-select: none;
-            padding: 4px 0;
+            padding: 6px 0;
+            touch-action: manipulation;
         }
 
         .filter-toggle input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
         }
 
         .checkbox-group {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .problem-card {
             display: flex;
             align-items: flex-start;
-            gap: 10px;
+            gap: 12px;
             padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            background-color: #fafafa;
+            background-color: #f9fafb;
         }
 
         .problem-card input[type="checkbox"] {
-            margin-top: 4px;
-            width: 20px;
-            height: 20px;
+            margin-top: 2px;
+            width: 22px;
+            height: 22px;
             cursor: pointer;
             flex-shrink: 0;
+            accent-color: var(--primary);
         }
 
         .problem-info { flex-grow: 1; width: 100%; }
@@ -196,7 +239,7 @@
             font-size: 0.95rem;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         @media (min-width: 480px) {
@@ -220,14 +263,14 @@
             margin-top: 8px;
             display: flex;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 6px;
         }
 
         .tool-chip {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 3px 6px;
+            padding: 4px 8px;
             border-radius: 4px;
             font-size: 0.75rem;
             border: 1px solid #d1d5db;
@@ -243,9 +286,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
+            padding: 12px 10px;
             border-bottom: 1px solid var(--border-color);
-            gap: 8px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .tool-item:last-child { border-bottom: none; }
@@ -255,16 +299,16 @@
             border: 1px solid #bfdbfe;
             border-radius: 6px;
             padding: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
             font-size: 0.85rem;
         }
 
         .badge {
             display: inline-block;
-            padding: 3px 8px;
+            padding: 4px 8px;
             border-radius: 12px;
             font-size: 0.75rem;
-            font-weight: bold;
+            font-weight: 700;
             white-space: nowrap;
         }
 
@@ -272,65 +316,118 @@
         .badge-warning { background-color: #fef3c7; color: #92400e; }
         .badge-danger { background-color: #fee2e2; color: #991b1b; }
 
+        /* Tag Status Select & Badges */
+        .tag-select {
+            padding: 6px 10px;
+            font-size: 0.8rem !important;
+            font-weight: 700;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            outline: none;
+            width: 100%;
+            max-width: 140px;
+        }
+
+        .tag-select.tag-yellow { background-color: #fef08a; color: #854d0e; border-color: #eab308; }
+        .tag-select.tag-red { background-color: #fecaca; color: #991b1b; border-color: #ef4444; }
+        .tag-select.tag-repair { background-color: #dbeafe; color: #1e40af; border-color: #3b82f6; }
+        .tag-select.tag-damage { background-color: #fce7f3; color: #9d174d; border-color: #ec4899; }
+        .tag-select.tag-none { background-color: #f3f4f6; color: #4b5563; border-color: #d1d5db; }
+
+        .tag-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .tag-badge.tag-yellow { background-color: #fef08a; color: #854d0e; border: 1px solid #eab308; }
+        .tag-badge.tag-red { background-color: #fecaca; color: #991b1b; border: 1px solid #ef4444; }
+        .tag-badge.tag-repair { background-color: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
+        .tag-badge.tag-damage { background-color: #fce7f3; color: #9d174d; border: 1px solid #ec4899; }
+        .tag-badge.tag-none { background-color: #f3f4f6; color: #6b7280; border: 1px solid #d1d5db; }
+
+        /* Responsive Table Wrapper */
         .table-wrapper { 
-            max-height: 380px; 
+            max-height: 480px; 
             overflow-y: auto; 
             overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             -webkit-overflow-scrolling: touch;
         }
 
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 320px; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.85rem; 
+            min-width: 550px; 
+        }
 
         th, td {
             text-align: left;
-            padding: 8px 6px;
+            padding: 10px 8px;
             border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
         }
 
-        @media (min-width: 480px) {
-            th, td { padding: 8px 10px; }
-        }
-
-        th { background-color: #f9fafb; position: sticky; top: 0; z-index: 10; }
+        th { background-color: #f9fafb; position: sticky; top: 0; z-index: 10; font-weight: 600; }
 
         .stock-ctrl {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
 
         .stock-ctrl .btn {
-            min-width: 28px;
-            height: 28px;
+            min-width: 32px;
+            height: 32px;
             padding: 0;
+            font-size: 1rem;
         }
 
-        .empty-state { color: var(--text-muted); text-align: center; padding: 20px 0; }
+        .empty-state { color: var(--text-muted); text-align: center; padding: 24px 10px; }
 
+        /* Responsive Overlay Modals */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 100;
-            padding: 10px;
+            z-index: 1000;
+            padding: 12px;
+            backdrop-filter: blur(2px);
         }
 
         .modal {
             background: white;
-            padding: 16px;
-            border-radius: 8px;
-            max-width: 550px;
+            padding: 18px;
+            border-radius: 12px;
+            max-width: 580px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
         }
 
-        @media (min-width: 480px) {
-            .modal { padding: 20px; }
+        @media (max-width: 600px) {
+            .modal-overlay {
+                align-items: flex-end;
+                padding: 0;
+            }
+            .modal {
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
+                max-height: 92vh;
+                padding-bottom: calc(18px + env(safe-area-inset-bottom));
+            }
         }
 
         .form-group { margin-bottom: 14px; }
@@ -339,21 +436,15 @@
             display: block;
             font-size: 0.85rem;
             font-weight: 600;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
+        .form-group input, .form-group select { width: 100%; }
 
         .tool-picker-container {
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 8px;
+            padding: 10px;
             background: #fafafa;
         }
 
@@ -361,7 +452,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         @media (min-width: 480px) {
@@ -377,17 +468,17 @@
             flex-wrap: wrap;
             gap: 6px;
             margin-bottom: 10px;
-            min-height: 36px;
-            padding: 6px;
+            min-height: 40px;
+            padding: 8px;
             background: #ffffff;
             border: 1px dashed var(--border-color);
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
         .selected-tag {
             background: #e0e7ff;
             color: #3730a3;
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 12px;
             font-size: 0.75rem;
             display: flex;
@@ -404,23 +495,24 @@
         }
 
         .tool-selector-list {
-            max-height: 160px;
+            max-height: 180px;
             overflow-y: auto;
             border: 1px solid var(--border-color);
             background: white;
-            border-radius: 4px;
+            border-radius: 6px;
             -webkit-overflow-scrolling: touch;
         }
 
         .tool-option {
-            padding: 8px 10px;
-            font-size: 0.8rem;
+            padding: 10px 12px;
+            font-size: 0.85rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
             border-bottom: 1px solid #f3f4f6;
             gap: 8px;
+            touch-action: manipulation;
         }
 
         .tool-option:hover { background: #f0f9ff; }
@@ -429,7 +521,14 @@
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 18px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .modal-actions .btn { flex: 1; }
+        @media (min-width: 480px) {
+            .modal-actions .btn { flex: initial; }
         }
     </style>
 </head>
@@ -440,7 +539,7 @@
 </div>
 
 <div class="app-container">
-    <div>
+    <div class="column">
         <div class="panel">
             <div class="panel-header">
                 <h2>Troubleshooting Scenarios</h2>
@@ -449,9 +548,7 @@
             <div id="problemList" class="checkbox-group"></div>
             <button class="btn" style="width: 100%;" onclick="calculateManifest()">Generate Tool Deployment Manifest</button>
         </div>
-    </div>
 
-    <div>
         <div class="panel">
             <div class="panel-header">
                 <h2>Optimized Tool Kit Manifest</h2>
@@ -463,7 +560,9 @@
                 <li class="empty-state">Select issues and click 'Generate Tool Deployment Manifest'.</li>
             </ul>
         </div>
+    </div>
 
+    <div class="column">
         <div class="panel">
             <div class="panel-header">
                 <h2>Warehouse Tool Inventory</h2>
@@ -474,7 +573,7 @@
             </div>
             
             <div class="search-bar-container">
-                <input type="text" id="invSearchInput" class="search-input" placeholder="🔍 Search tool or bin..." oninput="renderInventory()">
+                <input type="text" id="invSearchInput" class="search-input" placeholder="🔍 Search tool, bin, or tag..." oninput="renderInventory()">
                 <label class="filter-toggle">
                     <input type="checkbox" id="invInStockOnly" onchange="renderInventory()"> In-Stock Only
                 </label>
@@ -488,6 +587,7 @@
                             <th>SKU</th>
                             <th>Stock</th>
                             <th>Bin</th>
+                            <th>Tag Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -500,7 +600,7 @@
 
 <div id="problemModal" class="modal-overlay">
     <div class="modal">
-        <h3 id="modalProblemTitle" style="margin-top:0;">Configure Troubleshooting Option</h3>
+        <h3 id="modalProblemTitle" style="margin-top:0; font-size:1.1rem;">Configure Troubleshooting Option</h3>
         <input type="hidden" id="editingProblemId" value="">
         
         <div class="form-group">
@@ -519,11 +619,18 @@
         </div>
 
         <div class="form-group">
-            <label>Assigned Required Tools</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label style="margin:0;">Assigned Required Tools</label>
+                <button type="button" class="btn btn-sm btn-danger" style="padding:2px 8px; font-size:0.75rem; min-height:28px;" onclick="clearAllAssignedModalTools()">Clear Assigned</button>
+            </div>
+
             <div class="tool-picker-container">
                 <div class="picker-header">
                     <input type="text" id="modalSearchInput" class="search-input" placeholder="🔍 Quick search tools..." oninput="renderToolSelectorOptions()">
-                    <button type="button" class="btn btn-sm btn-danger" onclick="purgeOutOfStockFromModal()">Purge 0-Stock</button>
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" class="btn btn-sm btn-danger" onclick="purgeOutOfStockFromModal()">Purge 0-Stock</button>
+                        <button type="button" class="btn btn-sm" onclick="openToolModal()">+ New Tool</button>
+                    </div>
                 </div>
                 
                 <div class="picker-header">
@@ -534,7 +641,7 @@
 
                 <div class="selected-tags" id="selectedToolTags"></div>
 
-                <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Click tool below to add:</div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">Click tool below to add:</div>
                 <div class="tool-selector-list" id="toolSelectorList"></div>
             </div>
         </div>
@@ -548,7 +655,7 @@
 
 <div id="toolModal" class="modal-overlay">
     <div class="modal">
-        <h3 style="margin-top:0;">Add Warehouse Tool</h3>
+        <h3 style="margin-top:0; font-size:1.1rem;">Add Warehouse Tool</h3>
         <div class="form-group">
             <label for="toolName">Tool Name</label>
             <input type="text" id="toolName" placeholder="e.g., Multi-Angle Cutter">
@@ -565,8 +672,18 @@
             <label for="toolBin">Bin Location</label>
             <input type="text" id="toolBin" placeholder="e.g., BIN-A1">
         </div>
+        <div class="form-group">
+            <label for="toolTag">Tag Status</label>
+            <select id="toolTag">
+                <option value="none" selected>No Tag (Normal)</option>
+                <option value="yellow">Yellow Tag (Maintenance / Caution)</option>
+                <option value="red">Red Tag (Defective / Out of Service)</option>
+                <option value="repair">Repair Tag (In / Needs Repair)</option>
+                <option value="damage">Damage Tag (Physical Damage)</option>
+            </select>
+        </div>
         <div class="modal-actions">
-            <button class="btn btn-danger" onclick="closeModal('toolModal')">Cancel</button>
+            <button class="btn btn-secondary" onclick="closeModal('toolModal')">Cancel</button>
             <button class="btn" onclick="saveTool()">Save Tool</button>
         </div>
     </div>
@@ -603,54 +720,54 @@
     ];
 
     let inventory = [
-        { id: 't1', name: 'Nylon Rope Red', sku: 'ROLLS', stock: 2, bin: 'BIN-S1' },
-        { id: 't2', name: 'Level Bar 18inch', sku: 'PC', stock: 1, bin: 'BIN-M1' },
-        { id: 't3', name: 'Heatgun', sku: 'PC', stock: 1, bin: 'BIN-E3' },
-        { id: 't4', name: 'Torque Wrench', sku: 'PC', stock: 1, bin: 'BIN-T2' },
-        { id: 't5', name: 'Squala Long', sku: 'PC', stock: 1, bin: 'BIN-M3' },
-        { id: 't6', name: 'Sledge Hammer', sku: 'PC', stock: 1, bin: 'BIN-M5' },
-        { id: 't7', name: 'Portable Electric Fan', sku: 'PC', stock: 1, bin: 'BIN-A1' },
-        { id: 't8', name: 'Nail Gun', sku: 'PC', stock: 1, bin: 'BIN-P4' },
-        { id: 't9', name: 'Pliers', sku: 'PC', stock: 1, bin: 'BIN-T4' },
-        { id: 't10', name: 'Socket Wrench', sku: 'PC', stock: 1, bin: 'BIN-T5' },
-        { id: 't11', name: 'Small Hammer', sku: 'PC', stock: 1, bin: 'BIN-M7' },
-        { id: 't12', name: 'Adjustable Wrench', sku: 'PC', stock: 1, bin: 'BIN-T6' },
-        { id: 't13', name: 'Vise Grip', sku: 'PC', stock: 1, bin: 'BIN-T7' },
-        { id: 't14', name: 'Combination Wrench 19"', sku: 'PC', stock: 1, bin: 'BIN-T8' },
-        { id: 't15', name: 'Bolt Cutter Long', sku: 'PC', stock: 1, bin: 'BIN-M9' },
-        { id: 't16', name: 'Wire Stripper', sku: 'PC', stock: 1, bin: 'BIN-E7' },
-        { id: 't17', name: 'Rubber Mallet', sku: 'PC', stock: 1, bin: 'BIN-M10' },
-        { id: 't18', name: 'Long Nose Plier', sku: 'PC', stock: 2, bin: 'BIN-T9' },
-        { id: 't19', name: 'Pipe Wrench 18"', sku: 'PC', stock: 1, bin: 'BIN-M12' },
-        { id: 't20', name: 'Level Bar Small', sku: 'PC', stock: 1, bin: 'BIN-M13' },
-        { id: 't21', name: 'Squala Small', sku: 'PC', stock: 1, bin: 'BIN-M15' },
-        { id: 't22', name: 'Combination Wrench 15"', sku: 'PC', stock: 1, bin: 'BIN-T10' },
-        { id: 't23', name: 'Meter Tape 10m', sku: 'PC', stock: 1, bin: 'BIN-M14' },
-        { id: 't24', name: 'Insulated Flatscrew', sku: 'PC', stock: 1, bin: 'BIN-E8' },
-        { id: 't25', name: 'RJ45 Crimper', sku: 'PC', stock: 1, bin: 'BIN-E4' },
-        { id: 't26', name: 'Hammer', sku: 'PC', stock: 1, bin: 'BIN-M16' },
-        { id: 't27', name: 'MC4 Crimper', sku: 'PC', stock: 1, bin: 'BIN-E1' },
-        { id: 't28', name: 'Allen Wrench 6"', sku: 'PC', stock: 3, bin: 'BIN-T1' },
-        { id: 't29', name: 'Wire Cutter', sku: 'PC', stock: 1, bin: 'BIN-E6' },
-        { id: 't30', name: 'Wire Knife', sku: 'PC', stock: 1, bin: 'BIN-E9' },
-        { id: 't31', name: 'Hydraulic Crimper', sku: 'PC', stock: 1, bin: 'BIN-E2' },
-        { id: 't32', name: 'Sealant Gun', sku: 'PC', stock: 1, bin: 'BIN-M2' },
-        { id: 't33', name: 'Metal Hand Saw', sku: 'PC', stock: 1, bin: 'BIN-M4' },
-        { id: 't34', name: 'Fish Wire', sku: 'PC', stock: 1, bin: 'BIN-E5' },
-        { id: 't35', name: 'Knock Out Puncher', sku: 'SET', stock: 1, bin: 'BIN-M6' },
-        { id: 't36', name: 'Riviter', sku: 'PC', stock: 1, bin: 'BIN-M11' },
-        { id: 't37', name: 'PVC Cutter', sku: 'PC', stock: 1, bin: 'BIN-P11' },
-        { id: 't38', name: 'Regular Hammer', sku: 'PC', stock: 1, bin: 'BIN-M17' },
-        { id: 't39', name: 'Insulated Philip Screw', sku: 'PC', stock: 1, bin: 'BIN-E10' },
-        { id: 't40', name: 'SDS Cordless', sku: 'SET', stock: 1, bin: 'BIN-P7' },
-        { id: 't41', name: 'Cordless Grinder', sku: 'SET', stock: 1, bin: 'BIN-P6' },
-        { id: 't42', name: 'Cordless Charger', sku: 'PC', stock: 1, bin: 'BIN-P9' },
-        { id: 't43', name: 'Cordless Impact Drill', sku: 'SET', stock: 1, bin: 'BIN-P1' },
-        { id: 't44', name: 'Hand Drill', sku: 'PC', stock: 1, bin: 'BIN-P5' },
-        { id: 't45', name: 'Wired Grinder', sku: 'PC', stock: 1, bin: 'BIN-P13' },
-        { id: 't46', name: 'SDS Wired', sku: 'PC', stock: 1, bin: 'BIN-P2' },
-        { id: 't47', name: 'Drill Wired', sku: 'PC', stock: 1, bin: 'BIN-P8' },
-        { id: 't48', name: 'Cordless Battery', sku: 'PC', stock: 2, bin: 'BIN-P10' }
+        { id: 't1', name: 'Nylon Rope Red', sku: 'ROLLS', stock: 2, bin: 'BIN-S1', tag: 'none' },
+        { id: 't2', name: 'Level Bar 18inch', sku: 'PC', stock: 1, bin: 'BIN-M1', tag: 'none' },
+        { id: 't3', name: 'Heatgun', sku: 'PC', stock: 1, bin: 'BIN-E3', tag: 'yellow' },
+        { id: 't4', name: 'Torque Wrench', sku: 'PC', stock: 1, bin: 'BIN-T2', tag: 'repair' },
+        { id: 't5', name: 'Squala Long', sku: 'PC', stock: 1, bin: 'BIN-M3', tag: 'none' },
+        { id: 't6', name: 'Sledge Hammer', sku: 'PC', stock: 1, bin: 'BIN-M5', tag: 'damage' },
+        { id: 't7', name: 'Portable Electric Fan', sku: 'PC', stock: 1, bin: 'BIN-A1', tag: 'none' },
+        { id: 't8', name: 'Nail Gun', sku: 'PC', stock: 1, bin: 'BIN-P4', tag: 'red' },
+        { id: 't9', name: 'Pliers', sku: 'PC', stock: 1, bin: 'BIN-T4', tag: 'none' },
+        { id: 't10', name: 'Socket Wrench', sku: 'PC', stock: 1, bin: 'BIN-T5', tag: 'none' },
+        { id: 't11', name: 'Small Hammer', sku: 'PC', stock: 1, bin: 'BIN-M7', tag: 'none' },
+        { id: 't12', name: 'Adjustable Wrench', sku: 'PC', stock: 1, bin: 'BIN-T6', tag: 'none' },
+        { id: 't13', name: 'Vise Grip', sku: 'PC', stock: 1, bin: 'BIN-T7', tag: 'none' },
+        { id: 't14', name: 'Combination Wrench 19"', sku: 'PC', stock: 1, bin: 'BIN-T8', tag: 'none' },
+        { id: 't15', name: 'Bolt Cutter Long', sku: 'PC', stock: 1, bin: 'BIN-M9', tag: 'none' },
+        { id: 't16', name: 'Wire Stripper', sku: 'PC', stock: 1, bin: 'BIN-E7', tag: 'none' },
+        { id: 't17', name: 'Rubber Mallet', sku: 'PC', stock: 1, bin: 'BIN-M10', tag: 'none' },
+        { id: 't18', name: 'Long Nose Plier', sku: 'PC', stock: 2, bin: 'BIN-T9', tag: 'none' },
+        { id: 't19', name: 'Pipe Wrench 18"', sku: 'PC', stock: 1, bin: 'BIN-M12', tag: 'none' },
+        { id: 't20', name: 'Level Bar Small', sku: 'PC', stock: 1, bin: 'BIN-M13', tag: 'none' },
+        { id: 't21', name: 'Squala Small', sku: 'PC', stock: 1, bin: 'BIN-M15', tag: 'none' },
+        { id: 't22', name: 'Combination Wrench 15"', sku: 'PC', stock: 1, bin: 'BIN-T10', tag: 'none' },
+        { id: 't23', name: 'Meter Tape 10m', sku: 'PC', stock: 1, bin: 'BIN-M14', tag: 'none' },
+        { id: 't24', name: 'Insulated Flatscrew', sku: 'PC', stock: 1, bin: 'BIN-E8', tag: 'none' },
+        { id: 't25', name: 'RJ45 Crimper', sku: 'PC', stock: 1, bin: 'BIN-E4', tag: 'none' },
+        { id: 't26', name: 'Hammer', sku: 'PC', stock: 1, bin: 'BIN-M16', tag: 'none' },
+        { id: 't27', name: 'MC4 Crimper', sku: 'PC', stock: 1, bin: 'BIN-E1', tag: 'none' },
+        { id: 't28', name: 'Allen Wrench 6"', sku: 'PC', stock: 3, bin: 'BIN-T1', tag: 'none' },
+        { id: 't29', name: 'Wire Cutter', sku: 'PC', stock: 1, bin: 'BIN-E6', tag: 'none' },
+        { id: 't30', name: 'Wire Knife', sku: 'PC', stock: 1, bin: 'BIN-E9', tag: 'none' },
+        { id: 't31', name: 'Hydraulic Crimper', sku: 'PC', stock: 1, bin: 'BIN-E2', tag: 'none' },
+        { id: 't32', name: 'Sealant Gun', sku: 'PC', stock: 1, bin: 'BIN-M2', tag: 'none' },
+        { id: 't33', name: 'Metal Hand Saw', sku: 'PC', stock: 1, bin: 'BIN-M4', tag: 'none' },
+        { id: 't34', name: 'Fish Wire', sku: 'PC', stock: 1, bin: 'BIN-E5', tag: 'none' },
+        { id: 't35', name: 'Knock Out Puncher', sku: 'SET', stock: 1, bin: 'BIN-M6', tag: 'none' },
+        { id: 't36', name: 'Riviter', sku: 'PC', stock: 1, bin: 'BIN-M11', tag: 'none' },
+        { id: 't37', name: 'PVC Cutter', sku: 'PC', stock: 1, bin: 'BIN-P11', tag: 'none' },
+        { id: 't38', name: 'Regular Hammer', sku: 'PC', stock: 1, bin: 'BIN-M17', tag: 'none' },
+        { id: 't39', name: 'Insulated Philip Screw', sku: 'PC', stock: 1, bin: 'BIN-E10', tag: 'none' },
+        { id: 't40', name: 'SDS Cordless', sku: 'SET', stock: 1, bin: 'BIN-P7', tag: 'yellow' },
+        { id: 't41', name: 'Cordless Grinder', sku: 'SET', stock: 1, bin: 'BIN-P6', tag: 'none' },
+        { id: 't42', name: 'Cordless Charger', sku: 'PC', stock: 1, bin: 'BIN-P9', tag: 'none' },
+        { id: 't43', name: 'Cordless Impact Drill', sku: 'SET', stock: 1, bin: 'BIN-P1', tag: 'none' },
+        { id: 't44', name: 'Hand Drill', sku: 'PC', stock: 1, bin: 'BIN-P5', tag: 'none' },
+        { id: 't45', name: 'Wired Grinder', sku: 'PC', stock: 1, bin: 'BIN-P13', tag: 'none' },
+        { id: 't46', name: 'SDS Wired', sku: 'PC', stock: 1, bin: 'BIN-P2', tag: 'none' },
+        { id: 't47', name: 'Drill Wired', sku: 'PC', stock: 1, bin: 'BIN-P8', tag: 'none' },
+        { id: 't48', name: 'Cordless Battery', sku: 'PC', stock: 2, bin: 'BIN-P10', tag: 'none' }
     ];
 
     function getSeverityBadge(severity) {
@@ -661,6 +778,19 @@
             Low: 'badge-success'
         };
         return `<span class="badge ${styles[severity] || 'badge-success'}">${severity}</span>`;
+    }
+
+    function renderTagBadgeHTML(tagStatus) {
+        if (tagStatus === 'yellow') {
+            return `<span class="tag-badge tag-yellow">🟨 Yellow Tag</span>`;
+        } else if (tagStatus === 'red') {
+            return `<span class="tag-badge tag-red">🟥 Red Tag</span>`;
+        } else if (tagStatus === 'repair') {
+            return `<span class="tag-badge tag-repair">🛠️ Repair Tag</span>`;
+        } else if (tagStatus === 'damage') {
+            return `<span class="tag-badge tag-damage">⚠️ Damage Tag</span>`;
+        }
+        return `<span class="tag-badge tag-none">No Tag</span>`;
     }
 
     function renderProblems() {
@@ -675,9 +805,11 @@
                 const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
                 const isAvailable = invItem && invItem.stock > 0;
                 const stockText = invItem ? `(${invItem.stock})` : '(N/A)';
+                const tagBadge = invItem && invItem.tag !== 'none' ? renderTagBadgeHTML(invItem.tag) : '';
+
                 return `
                     <span class="tool-chip ${isAvailable ? 'instock' : 'outstock'}">
-                        ${toolName} ${stockText}
+                        ${toolName} ${stockText} ${tagBadge}
                     </span>
                 `;
             }).join('');
@@ -694,7 +826,7 @@
                                 <button class="btn btn-sm btn-danger" onclick="deleteProblem('${prob.id}')">✕</button>
                             </div>
                         </div>
-                        <div class="problem-tools">${toolChips}</div>
+                        <div class="problem-tools">${toolChips.length > 0 ? toolChips : '<em style="font-size:0.75rem;">No tools assigned.</em>'}</div>
                     </div>
                 </div>
             `;
@@ -707,35 +839,65 @@
         const inStockOnly = document.getElementById('invInStockOnly').checked;
 
         let filtered = inventory.filter(item => {
-            const matchesSearch = item.name.toLowerCase().includes(query) || item.bin.toLowerCase().includes(query) || item.sku.toLowerCase().includes(query);
+            const tagStr = (item.tag || 'none') + ' tag';
+            const matchesSearch = item.name.toLowerCase().includes(query) || 
+                                  item.bin.toLowerCase().includes(query) || 
+                                  item.sku.toLowerCase().includes(query) ||
+                                  tagStr.toLowerCase().includes(query);
             const matchesStock = !inStockOnly || item.stock > 0;
             return matchesSearch && matchesStock;
         });
 
         if (filtered.length === 0) {
-            table.innerHTML = '<tr><td colspan="5" class="empty-state">No matching tools found in inventory.</td></tr>';
+            table.innerHTML = '<tr><td colspan="6" class="empty-state">No matching tools found in inventory.</td></tr>';
             return;
         }
 
-        table.innerHTML = filtered.map(item => `
-            <tr>
-                <td><strong>${item.name}</strong></td>
-                <td>${item.sku}</td>
-                <td>
-                    <div class="stock-ctrl">
-                        <button class="btn btn-sm btn-secondary" onclick="adjustStock('${item.id}', -1)">-</button>
-                        <span class="badge ${item.stock > 0 ? 'badge-success' : 'badge-danger'}">
-                            ${item.stock}
-                        </span>
-                        <button class="btn btn-sm btn-secondary" onclick="adjustStock('${item.id}', 1)">+</button>
-                    </div>
-                </td>
-                <td>${item.bin}</td>
-                <td>
-                    <button class="btn btn-sm btn-danger" onclick="deleteTool('${item.id}')">Delete</button>
-                </td>
-            </tr>
-        `).join('');
+        table.innerHTML = filtered.map(item => {
+            const currentTag = item.tag || 'none';
+            return `
+                <tr>
+                    <td><strong>${item.name}</strong></td>
+                    <td>${item.sku}</td>
+                    <td>
+                        <div class="stock-ctrl">
+                            <button class="btn btn-sm btn-secondary" onclick="adjustStock('${item.id}', -1)">-</button>
+                            <span class="badge ${item.stock > 0 ? 'badge-success' : 'badge-danger'}">
+                                ${item.stock}
+                            </span>
+                            <button class="btn btn-sm btn-secondary" onclick="adjustStock('${item.id}', 1)">+</button>
+                        </div>
+                    </td>
+                    <td>${item.bin}</td>
+                    <td>
+                        <select class="tag-select tag-${currentTag}" onchange="updateToolTag('${item.id}', this.value)">
+                            <option value="none" ${currentTag === 'none' ? 'selected' : ''}>No Tag</option>
+                            <option value="yellow" ${currentTag === 'yellow' ? 'selected' : ''}>🟨 Yellow Tag</option>
+                            <option value="red" ${currentTag === 'red' ? 'selected' : ''}>🟥 Red Tag</option>
+                            <option value="repair" ${currentTag === 'repair' ? 'selected' : ''}>🛠️ Repair Tag</option>
+                            <option value="damage" ${currentTag === 'damage' ? 'selected' : ''}>⚠️ Damage Tag</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTool('${item.id}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function updateToolTag(id, newTag) {
+        const item = inventory.find(i => i.id === id);
+        if (item) {
+            item.tag = newTag;
+            renderInventory();
+            renderProblems();
+            calculateManifest();
+            if (document.getElementById('problemModal').style.display === 'flex') {
+                renderModalToolTags();
+                renderToolSelectorOptions();
+            }
+        }
     }
 
     function adjustStock(id, delta) {
@@ -780,6 +942,12 @@
         const uniqueTools = Array.from(requiredToolsSet);
         const eliminatedRedundancies = rawCount - uniqueTools.length;
 
+        if (uniqueTools.length === 0) {
+            manifestList.innerHTML = '<li class="empty-state">No tools assigned to the selected troubleshooting option(s).</li>';
+            statsBox.style.display = 'none';
+            return;
+        }
+
         manifestList.innerHTML = uniqueTools.map(toolName => {
             const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
             let statusTag = '';
@@ -789,13 +957,23 @@
             } else if (invItem.stock === 0) {
                 statusTag = `<span class="badge badge-danger">Shortage (0 Stock)</span>`;
             } else {
-                statusTag = `<span class="badge badge-success">${invItem.stock} ${invItem.sku} in ${invItem.bin}</span>`;
+                let tagWarning = '';
+                if (invItem.tag === 'red') {
+                    tagWarning = ` <span class="tag-badge tag-red">🟥 Red Tag</span>`;
+                } else if (invItem.tag === 'yellow') {
+                    tagWarning = ` <span class="tag-badge tag-yellow">🟨 Yellow Tag</span>`;
+                } else if (invItem.tag === 'repair') {
+                    tagWarning = ` <span class="tag-badge tag-repair">🛠️ Repair Tag</span>`;
+                } else if (invItem.tag === 'damage') {
+                    tagWarning = ` <span class="tag-badge tag-damage">⚠️ Damage Tag</span>`;
+                }
+                statusTag = `<span class="badge badge-success">${invItem.stock} ${invItem.sku} in ${invItem.bin}</span>${tagWarning}`;
             }
 
             return `
                 <li class="tool-item">
-                    <span>${toolName}</span>
-                    ${statusTag}
+                    <span><strong>${toolName}</strong></span>
+                    <div>${statusTag}</div>
                 </li>
             `;
         }).join('');
@@ -834,7 +1012,7 @@
     function renderModalToolTags() {
         const container = document.getElementById('selectedToolTags');
         if (currentModalTools.length === 0) {
-            container.innerHTML = '<span style="font-size:0.75rem; color:var(--text-muted);">No tools assigned yet. Search and click tools below to add.</span>';
+            container.innerHTML = '<span style="font-size:0.75rem; color:var(--text-muted);">No tools assigned yet. Click tools below or create a new tool to add.</span>';
             return;
         }
 
@@ -842,9 +1020,11 @@
             const invItem = inventory.find(i => i.name.toLowerCase() === toolName.toLowerCase());
             const isOut = !invItem || invItem.stock === 0;
             const style = isOut ? 'background:#fee2e2; color:#991b1b;' : 'background:#d1fae5; color:#065f46;';
+            const tagBadge = invItem && invItem.tag !== 'none' ? renderTagBadgeHTML(invItem.tag) : '';
+
             return `
                 <span class="selected-tag" style="${style}">
-                    ${toolName} ${invItem ? `(${invItem.stock} ${invItem.sku})` : '(0)'}
+                    ${toolName} ${invItem ? `(${invItem.stock} ${invItem.sku})` : '(0)'} ${tagBadge}
                     <span class="remove-btn" onclick="removeToolFromModal('${toolName}')">✕</span>
                 </span>
             `;
@@ -857,21 +1037,30 @@
         const searchQuery = document.getElementById('modalSearchInput').value.toLowerCase().trim();
 
         let availableList = inventory.filter(item => {
-            const matchesSearch = item.name.toLowerCase().includes(searchQuery) || item.bin.toLowerCase().includes(searchQuery) || item.sku.toLowerCase().includes(searchQuery);
+            const tagStr = (item.tag || 'none') + ' tag';
+            const matchesSearch = item.name.toLowerCase().includes(searchQuery) || 
+                                  item.bin.toLowerCase().includes(searchQuery) || 
+                                  item.sku.toLowerCase().includes(searchQuery) ||
+                                  tagStr.toLowerCase().includes(searchQuery);
             const matchesStock = !filterInStock || item.stock > 0;
             return matchesSearch && matchesStock;
         });
 
         if (availableList.length === 0) {
-            container.innerHTML = '<div class="tool-option" style="color:var(--text-muted);">No matching tools found.</div>';
+            container.innerHTML = `
+                <div style="padding:12px; text-align:center; color:var(--text-muted); font-size:0.8rem;">
+                    No matching tools displayed.
+                    <br><button class="btn btn-sm" style="margin-top:6px;" onclick="openToolModal()">+ Add New Tool to Stock</button>
+                </div>`;
             return;
         }
 
         container.innerHTML = availableList.map(item => {
             const isAlreadyAdded = currentModalTools.some(t => t.toLowerCase() === item.name.toLowerCase());
+            const tagBadge = renderTagBadgeHTML(item.tag || 'none');
             return `
                 <div class="tool-option" onclick="addToolToModal('${item.name}')" style="${isAlreadyAdded ? 'opacity:0.5; background:#f9fafb;' : ''}">
-                    <span>${item.name} (${item.sku} - ${item.bin})</span>
+                    <span>${item.name} (${item.sku} - ${item.bin}) ${tagBadge}</span>
                     <span class="badge ${item.stock > 0 ? 'badge-success' : 'badge-danger'}">
                         ${item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
                     </span>
@@ -892,6 +1081,15 @@
         currentModalTools = currentModalTools.filter(t => t.toLowerCase() !== toolName.toLowerCase());
         renderModalToolTags();
         renderToolSelectorOptions();
+    }
+
+    function clearAllAssignedModalTools() {
+        if (currentModalTools.length === 0) return;
+        if (confirm("Clear all assigned tools for this option?")) {
+            currentModalTools = [];
+            renderModalToolTags();
+            renderToolSelectorOptions();
+        }
     }
 
     function purgeOutOfStockFromModal() {
@@ -942,28 +1140,46 @@
         const sku = document.getElementById('toolSku').value.trim() || 'PC';
         const stock = parseInt(document.getElementById('toolStock').value, 10);
         const bin = document.getElementById('toolBin').value.trim() || 'UNASSIGNED';
+        const tag = document.getElementById('toolTag').value || 'none';
 
         if (!name || isNaN(stock)) {
             alert('Please enter a valid tool name and stock count.');
             return;
         }
 
-        inventory.push({
-            id: 't_' + Date.now(),
-            name: name,
-            sku: sku,
-            stock: stock,
-            bin: bin
-        });
+        const existingItem = inventory.find(i => i.name.toLowerCase() === name.toLowerCase());
+
+        if (existingItem) {
+            existingItem.stock += stock;
+            existingItem.tag = tag;
+        } else {
+            inventory.push({
+                id: 't_' + Date.now(),
+                name: name,
+                sku: sku,
+                stock: stock,
+                bin: bin,
+                tag: tag
+            });
+        }
+
+        if (document.getElementById('problemModal').style.display === 'flex') {
+            addToolToModal(name);
+        }
 
         document.getElementById('toolName').value = '';
         document.getElementById('toolSku').value = 'PC';
         document.getElementById('toolStock').value = '1';
         document.getElementById('toolBin').value = '';
+        document.getElementById('toolTag').value = 'none';
         closeModal('toolModal');
         renderInventory();
         renderProblems();
         calculateManifest();
+        if (document.getElementById('problemModal').style.display === 'flex') {
+            renderModalToolTags();
+            renderToolSelectorOptions();
+        }
     }
 
     function deleteAllTools() {
